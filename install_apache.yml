@@ -7,13 +7,34 @@
   - name: Update Repository Index
     apt:
       update_cache: yes
+    when: ansible_distribution == "Ubuntu"
 
   - name: Install apache2 package
     apt:
       name: apache2
       state: latest
+    when: ansible_distribution == "Ubuntu"
 
   - name: Add php support for Apache
     apt:
       name: libapache2-mod-php
       state: latest
+    when: ansible_distribution == "Ubuntu"
+
+  - name: Update Repository Index
+    dnf:
+      update_cache: yes
+    when: ansible_distribution == "Rocky"
+
+  - name: Install apache2 package
+    dnf:
+      name: httpd
+      state: latest
+    when: ansible_distribution == "Rocky"
+
+  - name: Add php support for Apache
+    dnf:
+      name: php
+      state: latest
+    when: ansible_distribution == "Rocky"
+
