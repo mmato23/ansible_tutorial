@@ -2,6 +2,23 @@
 
 - hosts: all
   become: true
+  pre_tasks:
+
+  - name: Install updates (Rocky)
+    dnf:
+      update_only: yes
+      update_cache: yes
+    when: ansible_distribution == "Rocky"
+
+  - name: Install updates (Ubuntu)
+    apt:
+      upgrade: dist
+      update_cache: yes
+    when: ansible_distribution == "Ubuntu"
+
+
+- hosts: web_servers
+  become: true
   tasks:
 
   - name: Install Apache and PHP for Ubuntu Servers
@@ -10,7 +27,6 @@
         - apache2
         - libapache2-mod-php
       state: latest
-      update_cache: yes
     when: ansible_distribution == "Ubuntu"
 
   - name: Install Apache and PHP for Rocky Linux Servers
@@ -19,5 +35,20 @@
         - httpd
         - php
       state: latest
-      update_cache: yes
     when: ansible_distribution == "Rocky"
+
+- hosts: db_servers
+  become: true
+  tasks:
+
+  - name: Install MariaDB package (Rocky)
+    dnf:
+      name: mariadb
+      state: latest
+    when: ansible_distribution == "Rocky"
+
+  - name: Install MariaDB package (Ubuntu)
+    apt:
+      name: mariadb-server
+      state: latest
+    when: ansible_distribution == "Ubuntu"
