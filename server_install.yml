@@ -30,6 +30,7 @@
     when: ansible_distribution == "Ubuntu"
 
   - name: Install Apache and PHP for Rocky Linux Servers
+    tags: apache,apache2,ubuntu
     dnf:
       name:
         - httpd
@@ -42,6 +43,7 @@
   tasks:
 
   - name: Install MariaDB package (Rocky)
+    tags: mariadb,database,rocky
     dnf:
       name: mariadb
       state: latest
@@ -52,3 +54,12 @@
       name: mariadb-server
       state: latest
     when: ansible_distribution == "Ubuntu"
+
+- hosts: file_servers
+  become: true
+  tasks:
+  
+  - name: Install Samba Package
+    package:
+      name: samba
+      state: latest
