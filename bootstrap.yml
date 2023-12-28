@@ -1,0 +1,42 @@
+---
+
+- hosts: all
+  become: true
+  pre_tasks:
+
+  - name: Install updates (Rocky)
+    dnf:
+      update_only: yes
+      update_cache: yes
+    when: ansible_distribution == "Rocky"
+
+  - name: Install updates (Ubuntu)
+    apt:
+      upgrade: dist
+      update_cache: yes
+    when: ansible_distribution == "Ubuntu"
+
+- hosts: all
+  become: true
+  tasks:
+
+  - name: Create oga user
+    tags: always
+    user:
+      name: oga
+      groups: root
+
+  - name: Add ssh key for Oga
+    tags: always
+    authorized_key:
+      user: oga
+      key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILxnm3nhgnNGHVzmReb7N+FyZxngZffh+oP7OyagYVz5 ansible"
+
+  - name: Add a sudoers file for Oga
+    tags: always
+    copy:
+      src: sudoer_oga
+      dest: /etc/sudoers.d/oga
+      owner: root
+      group: root
+      mode: 0440
