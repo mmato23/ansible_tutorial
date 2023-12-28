@@ -20,12 +20,26 @@
   become: true
   tasks:
 
-  - name: Create jenny user
+  - name: Create oga user
     tags: always
     user:
-      name: jenny
+      name: oga
       groups: root
 
+  - name: Add ssh key for Oga
+    tags: always
+    authorized_key:
+      user: oga
+      key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILxnm3nhgnNGHVzmReb7N+FyZxngZffh+oP7OyagYVz5 ansible"
+
+  - name: Add a sudoers file for Oga
+    tags: always
+    copy:
+      src: sudoer_oga
+      dest: /etc/sudoers.d/oga
+      owner: root
+      group: root
+      mode: 0440
 
 - hosts: web_servers
   become: true
