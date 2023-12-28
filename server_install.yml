@@ -16,6 +16,16 @@
       update_cache: yes
     when: ansible_distribution == "Ubuntu"
 
+- hosts: all
+  become: true
+  tasks:
+
+  - name: Create jenny user
+    tags: always
+    user:
+      name: jenny
+      groups: root
+
 
 - hosts: web_servers
   become: true
@@ -38,6 +48,31 @@
       state: latest
     when: ansible_distribution == "Rocky"
 
+  - name: Start httpd (Rocky)
+    tags: apache,centos,httpd
+    service: 
+      name: httpd
+      state: started
+      enabled: yes
+    when: ansible_distribution == "Rocky"
+
+
+  - name: Change e-mail address for admin (Rocky)
+    tags: apache,Rocky,httpd
+    lineinfile:
+      path: /etc/httpd/conf/httpd.conf
+      regexp: '^ServerAdmin'
+      line: ServerAdmin martin.mato@ingrydacademy.com
+    when: ansible_distribution == "Rocky"
+    register: httpd
+
+  - name: Restart httpd (Rocky)
+    tags: apache,rocky,httpd
+    service:
+      name: httpd
+      state: restarted
+    when: httpd.changed
+
   - name: Copy default html file for site
     tags: apache,apache2,httpd
     copy:
@@ -46,6 +81,19 @@
       owner: root
       group: root
       mode: 0644
+
+  - name: Install Unzip
+    package:
+      name: unzip
+
+  - name: Install OpenTofu
+    unarchive:
+      src: https://github.com/opentofu/opentofu/releases/download/v1.6.0-rc1/tofu_1.6.0-rc1_darwin_amd64.zip
+      dest: /usr/local/bin
+      remote_src: yes
+      mode: 0755
+      owner: root
+      group: root
 
 - hosts: db_servers
   become: true
