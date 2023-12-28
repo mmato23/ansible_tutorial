@@ -1,122 +1,39 @@
 ---
 
-- hosts: all
-  become: true
-  pre_tasks:
+ - hosts: all
+   become: true
+   pre_tasks:
 
-  - name: Install updates (Rocky)
-    dnf:
-      update_cache: yes
-    changed_when: false
-    when: ansible_distribution == "Rocky"
+   - name: update repository index (Rocky)
+     tags: always
+     dnf:
+       update_cache: yes
+     changed_when: false
+     when: ansible_distribution == "Rocky"
 
-  - name: Install updates (Ubuntu)
-    apt:
-      update_cache: yes
-    changed_when: false
-    when: ansible_distribution == "Ubuntu"
+   - name: update repository index (Ubuntu)
+     tags: always
+     apt:
+       update_cache: yes
+     changed_when: false
+     when: ansible_distribution == "Ubuntu"
 
-- hosts: all
-  become: true
-  tasks:
+ - hosts: all
+   become: true
+   roles:
+     - base
 
-  - name: Add ssh key for Oga
-    tags: always
-    authorized_key:
-      user: oga
-      key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILxnm3nhgnNGHVzmReb7N+FyZxngZffh+oP7OyagYVz5 ansible"
+ - hosts: web_servers
+   become: true
+   roles:
+     - web_servers
 
+ - hosts: db_servers
+   become: true
+   roles:
+     - db_servers
 
-- hosts: web_servers
-  become: true
-  tasks:
-
-  - name: Install Apache and PHP for Ubuntu Servers
-    apt:
-      name:
-        - apache2
-        - libapache2-mod-php
-      state: latest
-    when: ansible_distribution == "Ubuntu"
-
-  - name: Install Apache and PHP for Rocky Linux Servers
-    tags: apache,apache2,ubuntu
-    dnf:
-      name:
-        - httpd
-        - php
-      state: latest
-    when: ansible_distribution == "Rocky"
-
-  - name: Start httpd (Rocky)
-    tags: apache,centos,httpd
-    service: 
-      name: httpd
-      state: started
-      enabled: yes
-    when: ansible_distribution == "Rocky"
-
-
-  - name: Change e-mail address for admin (Rocky)
-    tags: apache,Rocky,httpd
-    lineinfile:
-      path: /etc/httpd/conf/httpd.conf
-      regexp: '^ServerAdmin'
-      line: ServerAdmin martin.mato@ingrydacademy.com
-    when: ansible_distribution == "Rocky"
-    register: httpd
-
-  - name: Restart httpd (Rocky)
-    tags: apache,rocky,httpd
-    service:
-      name: httpd
-      state: restarted
-    when: httpd.changed
-
-  - name: Copy default html file for site
-    tags: apache,apache2,httpd
-    copy:
-      src: default_site.html
-      dest: /var/www/html/index.html
-      owner: root
-      group: root
-      mode: 0644
-
-  - name: Install Unzip
-    package:
-      name: unzip
-
-  - name: Install OpenTofu
-    unarchive:
-      src: https://github.com/opentofu/opentofu/releases/download/v1.6.0-rc1/tofu_1.6.0-rc1_darwin_amd64.zip
-      dest: /usr/local/bin
-      remote_src: yes
-      mode: 0755
-      owner: root
-      group: root
-
-- hosts: db_servers
-  become: true
-  tasks:
-
-  - name: Install MariaDB package (Rocky)
-    tags: mariadb,database,rocky
-    dnf:
-      name: mariadb
-      state: latest
-    when: ansible_distribution == "Rocky"
-
-  - name: Install MariaDB package (Ubuntu)
-    apt:
-      name: mariadb-server
-      state: latest
-    when: ansible_distribution == "Ubuntu"
-
-- hosts: file_servers
-  become: true
-  tasks:
-  
-  - name: Install Samba Package
-    package:
-      name: samba
-      state: latest
+ - hosts: file_servers
+   become: true
+   roles:
+     - file_servers
