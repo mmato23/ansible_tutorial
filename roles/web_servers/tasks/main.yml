@@ -28,16 +28,9 @@
   lineinfile:
     path: /etc/httpd/conf/httpd.conf
     regexp: '^ServerAdmin'
-    line: ServerAdmin martin.mato@ingrydacademy.com
+    line: ServerAdmin martin@zbytes.tech
   when: ansible_distribution == "Rocky"
-  register: httpd
-
-- name: Restart httpd (Rocky)
-  tags: apache,rocky,httpd
-  service:
-    name: httpd
-    state: restarted
-  when: httpd.changed
+  notify: restart_apache
 
 - name: Copy default html file for site
   tags: apache,apache2,httpd
